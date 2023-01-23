@@ -7,7 +7,6 @@ def generate(x, y, n):
     k = x * 2 // 5
     for j in range(y):
         r = random.randint(0, 10)
-        print(r, k)
         if k < 5:
             k = 5
         ty = False
@@ -30,13 +29,14 @@ def generate(x, y, n):
             k += 1
             if k >= x - 3:
                 k = x - 3
-        elif r == 8:
+        elif r == 8 and 3 <= j <= len(a[0]) - 3:
             ty = True
             k += random.randint(-1, 1)
         a[k][j] = '-'
-        if ty:
-            for e in range(k - random.randint(2, 6), k):
-                if e - k <= 3:
+        if ty and '|' not in a[k + 1 : k - 3][j - 3: j + 3]:
+            we = k - random.randint(5, 8)
+            for e in range(we, k):
+                if k - e >= 3:
                     try:
                         if a[e][j - 1] == ' ':
                            a[e][j - 1] = '*'
@@ -48,12 +48,17 @@ def generate(x, y, n):
                     a[e][j] = '|'
                 except IndexError:
                     pass
-                we = e
             try:
-                a[e + 1][j]
+                a[we][j] = '*'
             except IndexError:
                 pass
-        print(k, j)
+    for kk in range(len(a[0])):
+        whi = False
+        for i in range(len(a)):
+            if whi:
+                a[i][kk] = 'E'
+            if a[i][kk] == '-':
+                whi = True
     for t in a:
         print(''.join(t), end='',  file=g)
         print(file=g)
