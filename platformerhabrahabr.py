@@ -27,7 +27,7 @@ class Camera(object):
 def camera_configure(camera, target_rect):
     l, t, _, _ = target_rect
     _, _, w, h = camera
-    l, t = -l+WIN_WIDTH / 2, -t+WIN_HEIGHT / 2
+    l, t = -l+WIN_WIDTH / 2 + 10, -t+WIN_HEIGHT / 2 + 10
 
     l = min(0, l)                           # Не движемся дальше левой границы
     l = max(-(camera.width-WIN_WIDTH), l)   # Не движемся дальше правой границы
@@ -53,7 +53,7 @@ def main():
     platforms = [] # то, во что мы будем врезаться или опираться
     trees = []
     entities.add(hero)
-    generate(30,  300, 'level.txt')
+    generate(40,  400, 'level.txt')
     level = open('level.txt').readlines()
     '''level = [
        "----------------------------------",
@@ -101,6 +101,14 @@ def main():
                 pf = Earth(x, y)
                 entities.add(pf)
                 platforms.append(pf)
+            elif col == 'S':
+                pf = Stone(x, y)
+                entities.add(pf)
+                platforms.append(pf)
+            elif col == 'R':
+                pf = Rude(x, y)
+                entities.add(pf)
+                platforms.append(pf)
             x += PLATFORM_WIDTH #блоки платформы ставятся на ширине блоков
         y += PLATFORM_HEIGHT    #то же самое и с высотой
         x = 0                   #на каждой новой строчке начинаем с нуля
@@ -133,10 +141,11 @@ def main():
         screen.blit(bg, (0,0))      # Каждую итерацию необходимо всё перерисовывать 
 
 
-        camera.update(hero) # центризируем камеру относительно персонажа
+         # центризируем камеру относительно персонажа
         # передвижение
         for e in entities:
             screen.blit(e.image, camera.apply(e))
+        camera.update(hero)
         hero.update(left, right, up, platforms)
         
         pygame.display.update()     # обновление и вывод всех изменений на экран
