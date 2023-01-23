@@ -51,7 +51,7 @@ def main():
     
     entities = pygame.sprite.Group() # Все объекты
     platforms = [] # то, во что мы будем врезаться или опираться
-    
+    trees = []
     entities.add(hero)
     generate(30,  300, 'level.txt')
     level = open('level.txt').readlines()
@@ -89,7 +89,18 @@ def main():
                 pf = Platform(x,y)
                 entities.add(pf)
                 platforms.append(pf)
-
+            elif col == '|':
+                pf = Tree(x, y)
+                entities.add(pf)
+                trees.append(pf)
+            elif col == '*':
+                pf = Listva(x, y)
+                entities.add(pf)
+                trees.append(pf)
+            elif col == 'E':
+                pf = Earth(x, y)
+                entities.add(pf)
+                platforms.append(pf)
             x += PLATFORM_WIDTH #блоки платформы ставятся на ширине блоков
         y += PLATFORM_HEIGHT    #то же самое и с высотой
         x = 0                   #на каждой новой строчке начинаем с нуля
@@ -123,11 +134,10 @@ def main():
 
 
         camera.update(hero) # центризируем камеру относительно персонажа
-        hero.update(left, right, up,platforms) # передвижение
-        #entities.draw(screen) # отображение
+        # передвижение
         for e in entities:
             screen.blit(e.image, camera.apply(e))
-        
+        hero.update(left, right, up, platforms)
         
         pygame.display.update()     # обновление и вывод всех изменений на экран
         
