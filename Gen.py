@@ -4,11 +4,11 @@ def generate(x, y, n):
     g = open(n, mode='w')
     a = [[' ' for t in range(y)] for i in range(x)]
     a.append(['-' for _ in range(y)])
-    k = x * 2 // 5
+    k = x * 4 // 5
     for j in range(y):
         r = random.randint(0, 10)
-        if k < 5:
-            k = 5
+        if k < 10:
+            k = 7
         ty = False
         if r == 0 or r == 10 and r == 9:
             k = k
@@ -56,9 +56,16 @@ def generate(x, y, n):
         whi = False
         for i in range(len(a)):
             if whi:
-                a[i][kk] = 'E'
+                err = random.randint(i, 100)
+                if err > 95:
+                    a[i][kk] = 'R'
+                elif err <= 60 and i < 60:
+                    a[i][kk] = 'E'
+                else:
+                    a[i][kk] = 'S'
             if a[i][kk] == '-':
                 whi = True
+
     for t in a:
         print(''.join(t), end='',  file=g)
         print(file=g)
