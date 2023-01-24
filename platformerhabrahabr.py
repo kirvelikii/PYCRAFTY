@@ -42,7 +42,7 @@ def main():
     screen = pygame.display.set_mode(DISPLAY) # Создаем окошко
     pygame.display.set_caption("PYCRAFT") # Пишем в шапку
     bg = Surface((WIN_WIDTH,WIN_HEIGHT)) # Создание видимой поверхности
-                                         # будем использовать как фон
+    bg2 = pygame.image.load('fon.jpg')                                     # будем использовать как фон
     bg.fill(Color(BACKGROUND_COLOR))     # Заливаем поверхность сплошным цветом
     
     hero = Player(0,0) # создаем героя по (x,y) координатам
@@ -80,7 +80,7 @@ def main():
        "-                                -",
        "-                                -",
        "----------------------------------"]'''
-       
+
     timer = pygame.time.Clock()
     x=y=0 # координаты
     for row in level: # вся строка
@@ -97,13 +97,18 @@ def main():
     total_level_width  = len(level[0])*PLATFORM_WIDTH # Высчитываем фактическую ширину уровня
     total_level_height = len(level)*PLATFORM_HEIGHT   # высоту
     
-    camera = Camera(camera_configure, total_level_width, total_level_height) 
+    camera = Camera(camera_configure, total_level_width, total_level_height)
+
+    flPause = False
+    pygame.mixer.music.load("audios/birds.mp3")
+    pygame.mixer.music.play(-1)
     
     while 1: # Основной цикл программы
         timer.tick(60)
         for e in pygame.event.get(): # Обрабатываем события
             if e.type == QUIT:
                 raise SystemExit
+
             if e.type == KEYDOWN and e.key == K_UP:
                 up = True
             if e.type == KEYDOWN and e.key == K_LEFT:
@@ -114,12 +119,20 @@ def main():
 
             if e.type == KEYUP and e.key == K_UP:
                 up = False
+
             if e.type == KEYUP and e.key == K_RIGHT:
                 right = False
             if e.type == KEYUP and e.key == K_LEFT:
                 left = False
+            elif e.type == pygame.KEYDOWN:
+                if e.key == pygame.K_SPACE:
+                    flPause = not flPause
+                    if flPause:
+                        pygame.mixer.music.pause()
+                    else:
+                        pygame.mixer.music.unpause()
 
-        screen.blit(bg, (0,0))      # Каждую итерацию необходимо всё перерисовывать 
+        screen.blit(bg2, (0,0))      # Каждую итерацию необходимо всё перерисовывать
 
 
         camera.update(hero) # центризируем камеру относительно персонажа
