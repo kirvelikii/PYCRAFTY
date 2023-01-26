@@ -35,9 +35,30 @@ def camera_configure(camera, target_rect):
     t = min(0, t)                           # Не движемся дальше верхней границы
 
     return Rect(l, t, w, h)        
+generate(40,  400, 'level.txt')
+level = open('level.txt').readlines()
+entities = pygame.sprite.Group() # Все объекты
+platforms = [] # то, во что мы будем врезаться или опираться
+trees = []
+camera = ''
+total_level_width = len(level[0]) * PLATFORM_WIDTH  # Высчитываем фактическую ширину уровня
+total_level_height = len(level) * PLATFORM_HEIGHT  # высоту
 
+camera = Camera(camera_configure, total_level_width, total_level_height)
+def get_click(pos):
+    global level, entities, camera
+    x, y = pos
+    level[y // 32][x // 32] = ' '
+    print(camera.state)
+    platformss = [i.delete(camera.state[0] + x, camera.state[1] + y) for i in platforms]
+    '''entities.remove(Platform(x // 32 * 32, y // 32 * 32))
+    print(platforms.pop(platforms.index(Platform(x // 32 * 32, y // 32 * 32))))'''
+    g = open('level.txt', mode='w')
+    for i in range(len(level)):
+        print(''.join(level[i]), end='',  file=g)
 
 def main():
+    global level, entities, platforms, trees
     pygame.init() # Инициация PyGame, обязательная строчка 
     screen = pygame.display.set_mode(DISPLAY) # Создаем окошко
     pygame.display.set_caption("PYCRAFT") # Пишем в шапку
@@ -55,32 +76,7 @@ def main():
     entities.add(hero)
     generate(40,  400, 'level.txt')
     level = open('level.txt').readlines()
-    '''level = [
-       "----------------------------------",
-       "-                                -",
-       "-                       --       -",
-       "-                                -",
-       "-            --                  -",
-       "-                                -",
-       "--                               -",
-       "-                                -",
-       "-                   ----     --- -",
-       "-                                -",
-       "--                               -",
-       "-                                -",
-       "-                            --- -",
-       "-                                -",
-       "-                                -",
-       "-      ---                       -",
-       "-                                -",
-       "-   -------         ----         -",
-       "-                                -",
-       "-                         -      -",
-       "-                            --  -",
-       "-                                -",
-       "-                                -",
-       "----------------------------------"]'''
-
+    level = [[i for i in a] for a in level]
     timer = pygame.time.Clock()
     x=y=0 # координаты
     for row in level: # вся строка
@@ -109,10 +105,9 @@ def main():
                 pf = Rude(x, y)
                 entities.add(pf)
                 platforms.append(pf)
-            x += PLATFORM_WIDTH #блоки платформы ставятся на ширине блоков
-        y += PLATFORM_HEIGHT    #то же самое и с высотой
-        x = 0                   #на каждой новой строчке начинаем с нуля
-    
+            x += PLATFORM_WIDTH
+        y += PLATFORM_HEIGHT
+        x = 0
     total_level_width  = len(level[0])*PLATFORM_WIDTH # Высчитываем фактическую ширину уровня
     total_level_height = len(level)*PLATFORM_HEIGHT   # высоту
     
@@ -123,8 +118,12 @@ def main():
     pygame.mixer.music.play(-1)
     
     while 1: # Основной цикл программы
-        timer.tick(60)
+        timer.tick(45)
         for e in pygame.event.get(): # Обрабатываем события
+            if e.type == pygame.MOUSEBUTTONDOWN:
+                camera.update(hero)
+                get_click(e.pos)
+
             if e.type == QUIT:
                 raise SystemExit
 
@@ -162,7 +161,7 @@ def main():
         hero.update(left, right, up, platforms)
         
         pygame.display.update()     # обновление и вывод всех изменений на экран
-        
+
 
 if __name__ == "__main__":
     main()
