@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from random import random, randrange
-
 from Gen import generate
 # Импортируем библиотеку pygame
 import pygame
@@ -14,10 +12,6 @@ WIN_WIDTH = 800 #Ширина создаваемого окна
 WIN_HEIGHT = 640 # Высота
 DISPLAY = (WIN_WIDTH, WIN_HEIGHT) # Группируем ширину и высоту в одну переменную
 BACKGROUND_COLOR = "#90EEFD"
-
-
-enemy_img = [pygame.image.load('Bird0.png'), pygame.image.load('Bird1.png'), pygame.image.load('Bird2.png'),
-            pygame.image.load('Bird3.png')]
 
 class Camera(object):
     def __init__(self, camera_func, width, height):
@@ -40,48 +34,31 @@ def camera_configure(camera, target_rect):
     t = max(-(camera.height-WIN_HEIGHT), t) # Не движемся дальше нижней границы
     t = min(0, t)                           # Не движемся дальше верхней границы
 
-    return Rect(l, t, w, h)
-class Enemy:
-    def __init__(self, away_y):
-        self.x = randrange(550, 730)
-        self.y = away_y
-        self.ay = away_y
-        self.speed = 3
-        self.dest_y = self.speed * random.randrange(20, 70)
-        self.img_cnt = 0
-        self.cd_hide = 0
-        self.come = True
-        self.go_away = False
+    return Rect(l, t, w, h)        
+generate(40,  400, 'level.txt')
+level = open('level.txt').readlines()
+entities = pygame.sprite.Group() # Все объекты
+platforms = [] # то, во что мы будем врезаться или опираться
+trees = []
+camera = ''
+total_level_width = len(level[0]) * PLATFORM_WIDTH  # Высчитываем фактическую ширину уровня
+total_level_height = len(level) * PLATFORM_HEIGHT  # высоту
 
-    def draw(self):
-        if self.img_cnt == 30:
-            self.img_cnt = 0
-
-        screen.blit(enemy_img[self.img_cnt // 3], (self.x, self.y))
-
-        if self.come and self.cd_hide == 0:
-            if self.y < self.dest_y:
-                self.y += self.speed
-            else:
-                self.come = False
-                self.go_away = True
-                self.dest_y = self.ay
-        elif self.go_away:
-            if self.y > self.dest_y:
-                self.y -= self.speed
-            else:
-                self.come = True
-                self.go_away = False
-                self.x = randrange(550, 730)
-                self.dest_y = self.speed * randrange(20, 70)
-                self.cd_hide = 80
-        elif self.cd_hide > 0:
-            self.cd_hide -= 1
-
-
-
+camera = Camera(camera_configure, total_level_width, total_level_height)
+def get_click(pos):
+    global level, entities, camera
+    x, y = pos
+    level[y // 32][x // 32] = ' '
+    print(camera.state)
+    platformss = [i.delete(camera.state[0] + x, camera.state[1] + y) for i in platforms]
+    '''entities.remove(Platform(x // 32 * 32, y // 32 * 32))
+    print(platforms.pop(platforms.index(Platform(x // 32 * 32, y // 32 * 32))))'''
+    g = open('level.txt', mode='w')
+    for i in range(len(level)):
+        print(''.join(level[i]), end='',  file=g)
 
 def main():
+    global level, entities, platforms, trees
     pygame.init() # Инициация PyGame, обязательная строчка 
     screen = pygame.display.set_mode(DISPLAY) # Создаем окошко
     pygame.display.set_caption("PYCRAFT") # Пишем в шапку
@@ -99,32 +76,7 @@ def main():
     entities.add(hero)
     generate(40,  400, 'level.txt')
     level = open('level.txt').readlines()
-    '''level = [
-       "----------------------------------",
-       "-                                -",
-       "-                       --       -",
-       "-                                -",
-       "-            --                  -",
-       "-                                -",
-       "--                               -",
-       "-                                -",
-       "-                   ----     --- -",
-       "-                                -",
-       "--                               -",
-       "-                                -",
-       "-                            --- -",
-       "-                                -",
-       "-                                -",
-       "-      ---                       -",
-       "-                                -",
-       "-   -------         ----         -",
-       "-                                -",
-       "-                         -      -",
-       "-                            --  -",
-       "-                                -",
-       "-                                -",
-       "----------------------------------"]'''
-
+    level = [[i for i in a] for a in level]
     timer = pygame.time.Clock()
     x=y=0 # координаты
     for row in level: # вся строка
@@ -153,23 +105,25 @@ def main():
                 pf = Rude(x, y)
                 entities.add(pf)
                 platforms.append(pf)
-            x += PLATFORM_WIDTH #блоки платформы ставятся на ширине блоков
-        y += PLATFORM_HEIGHT    #то же самое и с высотой
-        x = 0                   #на каждой новой строчке начинаем с нуля
-    
+            x += PLATFORM_WIDTH
+        y += PLATFORM_HEIGHT
+        x = 0
     total_level_width  = len(level[0])*PLATFORM_WIDTH # Высчитываем фактическую ширину уровня
     total_level_height = len(level)*PLATFORM_HEIGHT   # высоту
     
     camera = Camera(camera_configure, total_level_width, total_level_height)
 
     flPause = False
-   # pygame.mixer.music.load("audios/birds.ogg")
-  # pygame.mixer.music.play(-1)
-    enemy1 = Enemy(-80)
+    pygame.mixer.music.load("audios/birds.mp3")
+    pygame.mixer.music.play(-1)
     
     while 1: # Основной цикл программы
-        timer.tick(60)
+        timer.tick(45)
         for e in pygame.event.get(): # Обрабатываем события
+            if e.type == pygame.MOUSEBUTTONDOWN:
+                camera.update(hero)
+                get_click(e.pos)
+
             if e.type == QUIT:
                 raise SystemExit
 
@@ -191,13 +145,12 @@ def main():
             elif e.type == pygame.KEYDOWN:
                 if e.key == pygame.K_SPACE:
                     flPause = not flPause
-                #    if flPause:
-                 #       pygame.mixer.music.pause()
-              #      else:
-              #          pygame.mixer.music.unpause()
+                    if flPause:
+                        pygame.mixer.music.pause()
+                    else:
+                        pygame.mixer.music.unpause()
 
         screen.blit(bg2, (0,0))      # Каждую итерацию необходимо всё перерисовывать
-        enemy1.draw()
 
 
          # центризируем камеру относительно персонажа
@@ -208,7 +161,7 @@ def main():
         hero.update(left, right, up, platforms)
         
         pygame.display.update()     # обновление и вывод всех изменений на экран
-        
+
 
 if __name__ == "__main__":
     main()
