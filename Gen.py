@@ -4,7 +4,7 @@ def generate(x, y, n):
     g = open(n, mode='w')
     a = [[' ' for t in range(y)] for i in range(x)]
     a.append(['-' for _ in range(y)])
-    k = x * 4 // 5
+    k = 20
     for j in range(y):
         r = random.randint(0, 10)
         if k < 10:
@@ -69,4 +69,3 @@ def generate(x, y, n):
     for t in a:
         print(''.join(t), end='',  file=g)
         print(file=g)
-generate(10, 50, 'level.txt')
