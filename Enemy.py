@@ -10,7 +10,7 @@ class Enemy:
         self.y = away_y
         self.ay = away_y
         self.speed = 3
-        self.dest_y = self.speed * random.randrange(20, 70)
+        self.dest_y = self.speed * random().randrange(20, 70)
         self.img_cnt = 0
         self.cd_hide = 0
         self.come = True
