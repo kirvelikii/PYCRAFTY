@@ -5,13 +5,13 @@ from pygame import *
 import pyganim
 import os
 
-MOVE_SPEED = 7
+MOVE_SPEED = 10
 WIDTH = 22
 HEIGHT = 32
 COLOR =  "#888888"
-JUMP_POWER = 10
-GRAVITY = 0.35 # Сила, которая будет тянуть нас вниз
-ANIMATION_DELAY = 0.1 # скорость смены кадров
+JUMP_POWER = 8
+GRAVITY = 0.8 # Сила, которая будет тянуть нас вниз
+ANIMATION_DELAY = 0.2 # скорость смены кадров
 ICON_DIR = os.path.dirname(__file__) #  Полный путь к каталогу с файлами
 
 ANIMATION_RIGHT = [('%s/mario/r1.png' % ICON_DIR),
@@ -108,7 +108,8 @@ class Player(sprite.Sprite):
 
         self.rect.x += self.xvel # переносим свои положение на xvel
         self.collide(self.xvel, 0, platforms)
-   
+    def getpos(self):
+        return(self.rect.x, self.rect.y)
     def collide(self, xvel, yvel, platforms):
         for p in platforms:
             if sprite.collide_rect(self, p): # если есть пересечение платформы с игроком

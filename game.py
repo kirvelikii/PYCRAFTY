@@ -20,7 +20,8 @@ class Camera(object):
 
     def apply(self, target):
         return target.rect.move(self.state.topleft)
-
+    def getpos(self):
+        return (self.state[0], self.state[1])
     def update(self, target):
         self.state = self.camera_func(self.state, target.rect)
         
@@ -43,14 +44,15 @@ trees = []
 camera = ''
 total_level_width = len(level[0]) * PLATFORM_WIDTH  # Высчитываем фактическую ширину уровня
 total_level_height = len(level) * PLATFORM_HEIGHT  # высоту
-
+hero = Player(0, 0) # создаем героя по (x,y) координатам
 camera = Camera(camera_configure, total_level_width, total_level_height)
 def get_click(pos):
-    global level, entities, camera
+    global level, entities, camera, platforms
     x, y = pos
+    dop = camera.getpos()
+    print(dop)
     level[y // 32][x // 32] = ' '
-    print(camera.state)
-    platformss = [i.delete(camera.state[0] + x, camera.state[1] + y) for i in platforms]
+    platformss = [i.delete(dop[0] + x, 9 * 32 + dop[1] + y) for i in platforms]
     '''entities.remove(Platform(x // 32 * 32, y // 32 * 32))
     print(platforms.pop(platforms.index(Platform(x // 32 * 32, y // 32 * 32))))'''
     g = open('level.txt', mode='w')
@@ -66,7 +68,7 @@ def main():
     bg2 = pygame.image.load('fon.jpg')                                     # будем использовать как фон
     bg.fill(Color(BACKGROUND_COLOR))     # Заливаем поверхность сплошным цветом
     
-    hero = Player(0,0) # создаем героя по (x,y) координатам
+
     left = right = False # по умолчанию - стоим
     up = False
     
@@ -113,9 +115,9 @@ def main():
     
     camera = Camera(camera_configure, total_level_width, total_level_height)
 
-    flPause = False
+    '''flPause = False
     pygame.mixer.music.load("audios/birds.mp3")
-    pygame.mixer.music.play(-1)
+    pygame.mixer.music.play(-1)'''
     
     while 1: # Основной цикл программы
         timer.tick(45)
