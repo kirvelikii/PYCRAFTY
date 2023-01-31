@@ -1,10 +1,12 @@
-#!/usr/bin/env python
+''''#!/usr/bin/env python пока не надо
 # -*- coding: utf-8 -*-
 import pygame
 from pygame import *
 import pyganim
 import os
-
+import math
+entities = sprite.Group()
+bullets = sprite.Group()
 MOVE_SPEED = 10
 WIDTH = 22
 HEIGHT = 32
@@ -66,7 +68,21 @@ class Player(sprite.Sprite):
         
         self.boltAnimJump= pyganim.PygAnimation(ANIMATION_JUMP)
         self.boltAnimJump.play()
-        
+
+    def Shoot(self):
+        fixspeed = 20
+        posx = pygame.mouse.get_pos()[0]
+        posy = pygame.mouse.get_pos()[1]
+
+        self.a = posx - self.rect.right
+        self.b = self.rect.centery - posy
+        self.c = math.hypot(self.a, self.b)
+        self.t = self.c / fixspeed
+        speedx = self.a / self.t
+        speedy = -self.b / self.t
+        bullet = Bullet(self.rect.right, self.rect.centery, speedx, speedy)
+        entities.add(bullet)
+        bullets.add(bullet)
 
     def update(self, left, right, up, platforms):
         
@@ -127,5 +143,5 @@ class Player(sprite.Sprite):
 
                 if yvel < 0:                      # если движется вверх
                     self.rect.top = p.rect.bottom # то не движется вверх
-                    self.yvel = 0                 # и энергия прыжка пропадает
+                    self.yvel = 0                 # и энергия прыжка пропадает'''
        
