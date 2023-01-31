@@ -106,7 +106,12 @@ class Enemy:
             self.cd_hide -= 1
 
 
-
+def draw_lives(surf, x, y, lives, img):
+    for i in range(lives):
+        img_rect = img.get_rect()
+        img_rect.x = x + 30 * i
+        img_rect.y = y
+        surf.blit(img, img_rect)
 
 def main():
     global level, entities, platforms, trees
@@ -168,14 +173,26 @@ def main():
    # pygame.mixer.music.load("audios/birds.ogg")
   # pygame.mixer.music.play(-1)
     enemy1 = Enemy(-80)
-    
+    clock = pygame.time.Clock()
+
+    counter, text = 0 , '10'.rjust(3)
+    pygame.time.set_timer(pygame.USEREVENT, 1000)
+    font = pygame.font.SysFont('Comic Sans', 20)
+    hp = 3
+    hp_img = pygame.image.load("mario/hp_full.png").convert()
+    hp_img = pygame.transform.scale(hp_img, (30, 30))
+    hp_img.set_colorkey('black')
     while 1: # Основной цикл программы
-        timer.tick(45)
+        timer.tick(60)
         for e in pygame.event.get(): # Обрабатываем события
             if e.type == pygame.MOUSEBUTTONDOWN:
                 camera.update(hero)
                 get_click(e.pos)
-
+            if e.type == pygame.USEREVENT:
+                counter += 1
+                mi = counter // 60
+                counter = counter % 60
+                text = ('Время выживания   ' + str(mi) + ':' + str(counter)).rjust(7)
             if e.type == QUIT:
                 raise SystemExit
 
@@ -201,11 +218,14 @@ def main():
                  #       pygame.mixer.music.pause()
               #      else:
               #          pygame.mixer.music.unpause()
-
+        screen.blit(font.render(text, True, (0, 0, 0)), (32, 48))
+        draw_lives(screen, 30, 550, hp, hp_img)
+        pygame.display.flip()
         screen.blit(bg2, (0,0))      # Каждую итерацию необходимо всё перерисовывать
         enemy1.draw()
-
-
+        if hp == 0:
+            print('Game Over, your time -', mi, ':', counter)
+            raise SystemExit
          # центризируем камеру относительно персонажа
         # передвижение
         for e in entities:
