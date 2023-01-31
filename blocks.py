@@ -22,7 +22,6 @@ class Platform(sprite.Sprite):
         if 0 <= x - self.pos[0] <= 32 and -1 <  y // 32 - self.pos[1] // 32 < 1:
             self.image = Surface((0, 0))
             self.image = image.load("%s/blocks/platform.png" % ICON_DIR)
-            print(y, self.pos[1])
             self.rect = Rect(0, 0, 0, 0)
 class Tree(sprite.Sprite):
     def __init__(self, x, y):
@@ -37,8 +36,8 @@ class Tree(sprite.Sprite):
         if 0 <= x - self.pos[0] <= 32 and -1 < y // 32 - self.pos[1] // 32 < 1:
             self.image = Surface((0, 0))
             self.image = image.load("%s/blocks/platform.png" % ICON_DIR)
-            print(y, self.pos[1])
             self.rect = Rect(0, 0, 0, 0)
+            return 'wood'
 
 class Listva(sprite.Sprite):
     def __init__(self, x, y):
@@ -53,7 +52,6 @@ class Listva(sprite.Sprite):
         if 0 <= x - self.pos[0] <= 32 and -1 < y // 32 - self.pos[1] // 32 < 1:
             self.image = Surface((0, 0))
             self.image = image.load("%s/blocks/platform.png" % ICON_DIR)
-            print(y, self.pos[1])
             self.rect = Rect(0, 0, 0, 0)
 
 class Earth(sprite.Sprite):
@@ -69,7 +67,6 @@ class Earth(sprite.Sprite):
         if 0 <= x - self.pos[0] <= 32 and -1 < y // 32 - self.pos[1] // 32 < 1:
             self.image = Surface((0, 0))
             self.image = image.load("%s/blocks/platform.png" % ICON_DIR)
-            print(y, self.pos[1])
             self.rect = Rect(0, 0, 0, 0)
 
 
@@ -86,9 +83,8 @@ class Stone(sprite.Sprite):
         if 0 <= x - self.pos[0] <= 32 and -1 < y // 32 - self.pos[1] // 32 < 1:
             self.image = Surface((0, 0))
             self.image = image.load("%s/blocks/platform.png" % ICON_DIR)
-            print(y, self.pos[1])
             self.rect = Rect(0, 0, 0, 0)
-
+            return 'stone'
 
 class Rude(sprite.Sprite):
     def __init__(self, x, y):
@@ -103,5 +99,5 @@ class Rude(sprite.Sprite):
         if 0 <= x - self.pos[0] <= 32 and -1 < y // 32 - self.pos[1] // 32 < 1:
             self.image = Surface((0, 0))
             self.image = image.load("%s/blocks/platform.png" % ICON_DIR)
-            print(y, self.pos[1])
             self.rect = Rect(0, 0, 0, 0)
+            return 'rude'

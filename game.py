@@ -5,6 +5,7 @@ import math
 from Gen import generate
 # Импортируем библиотеку pygame
 import pygame
+import pyganim
 from pygame import *
 '''from player import *'''
 from blocks import *
@@ -83,8 +84,8 @@ class Player(sprite.Sprite):
 
     def Shoot(self):
         fixspeed = 20
-        posx = pygame.mouse.get_pos()[0]
-        posy = pygame.mouse.get_pos()[1]
+        posx = pygame.mouse.get_pos()[0] + camera.getpos(hero)[0] * (-1)
+        posy = pygame.mouse.get_pos()[1]  + camera.getpos(hero)[1] * (-1)
 
         self.a = posx - self.rect.right
         self.b = self.rect.centery - posy
@@ -163,7 +164,7 @@ class Bullet(pygame.sprite.Sprite):
     def __init__(self, x, y, speedx, speedy):
         pygame.sprite.Sprite.__init__(self)
         self.image = pygame.Surface((10, 10))
-        self.image.fill('blue')
+        self.image = image.load('bullet.png')
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
@@ -173,7 +174,8 @@ class Bullet(pygame.sprite.Sprite):
     def update(self):
         self.rect.x += self.speedx
         self.rect.y += self.speedy
-        if self.rect.bottom < 0 or self.rect.right < 0 or self.rect.top > WIN_HEIGHT or self.rect.left > WIN_WIDTH:
+        self.poos = camera.getpos(hero)
+        if self.rect.bottom < 0 or self.rect.right < 0 or self.rect.top > 40 * 32 or self.rect.left > 400 * 32:
             self.kill()
 
 class Camera(object):
@@ -184,8 +186,9 @@ class Camera(object):
     def apply(self, target):
         return target.rect.move(self.state.topleft)
 
-    def getpos(self):
-        return (self.state[0], self.state[1])
+    def getpos(self, target):
+        self.state = self.camera_func(self.state, target.rect)
+        return self.state
 
     def update(self, target):
         self.state = self.camera_func(self.state, target.rect)
@@ -214,20 +217,28 @@ trees = []
 camera = ''
 total_level_width = len(level[0]) * PLATFORM_WIDTH  # Высчитываем фактическую ширину уровня
 total_level_height = len(level) * PLATFORM_HEIGHT  # высоту
-hero = Player(0, 0)  # создаем героя по (x,y) координатам
+hero = Player(200 * 32, 50)  # создаем героя по (x,y) координатам
 camera = Camera(camera_configure, total_level_width, total_level_height)
 pygame.init()  # Инициация PyGame, обязательная строчка
 screen = pygame.display.set_mode(DISPLAY)  # Создаем окошко
-
-
+wood = 0
+stone = 0
+rude = 0
+w = '0'.rjust(10)
 def get_click(pos):
-    global level, entities, camera, platforms
+    global level, entities, camera, platforms, wood, stone, rude
     x, y = pos
-    dop = camera.getpos()
-    print(dop)
+    dop = camera.getpos(hero)
     level[y // 32][x // 32] = ' '
-    platformss = [i.delete(dop[0] + x, 9 * 32 + dop[1] + y) for i in platforms]
-    trr = [i.delete(dop[0] + x, 9 * 32 + dop[1] + y) for i in trees]
+    loot = [i.delete(-1 * dop[0] + x, - 1 * dop[1] + y) for i in platforms]
+    loot += [i.delete(-1 * dop[0] + x, - 1 * dop[1] + y) for i in trees]
+    for trr in loot:
+        if trr == 'wood':
+            wood += 1
+        elif trr == 'stone':
+            stone += 1
+        else:
+            rude += 1
     '''entities.remove(Platform(x // 32 * 32, y // 32 * 32))
     print(platforms.pop(platforms.index(Platform(x // 32 * 32, y // 32 * 32))))'''
     g = open('level.txt', mode='w')
@@ -288,12 +299,13 @@ class Mob(pygame.sprite.Sprite):
         self.rect.y += self.speedy
         self.rect.x += self.speedx
         if self.rect.top > WIN_HEIGHT + 10 or self.rect.left < -10 or self.rect.right > WIN_WIDTH + 10:
-            self.rect.x = random.randrange(WIN_WIDTH - self.rect.width)
-            self.rect.y = random.randrange(-100, -40)
-            self.speedy = random.randrange(5, 8)
+            self.rect.x = randrange(WIN_WIDTH - self.rect.width)
+            self.rect.y = randrange(-100, -40)
+            self.speedy = randrange(5, 8)
+            self.speedx = randrange(5, 8)
 
 
-for i in range(2):
+for i in range(4):
     mob = Mob()
     entities.add(mob)
     mobs.add(mob)
@@ -302,7 +314,7 @@ for i in range(2):
 def draw_lives(surf, x, y, lives, img):
     for i in range(lives):
         img_rect = img.get_rect()
-        img_rect.x = x + 30 * i
+        img_rect.x = x + 50 * i
         img_rect.y = y
         surf.blit(img, img_rect)
 
@@ -318,7 +330,7 @@ def main():
 
     left = right = False  # по умолчанию - стоим
     up = False
-
+    prhit = 0
     entities = pygame.sprite.Group()  # Все объекты
     platforms = []  # то, во что мы будем врезаться или опираться
     trees = []
@@ -368,21 +380,27 @@ def main():
     enemy1 = Enemy(-80)
     clock = pygame.time.Clock()
 
-    counter, text = 0, '10'.rjust(3)
+    counter, text = 0, '0:0'.rjust(7)
     pygame.time.set_timer(pygame.USEREVENT, 1000)
     font = pygame.font.SysFont('Comic Sans', 20)
     hp = 3
-    hp_img = pygame.image.load("mario/hp_full.png").convert()
-    hp_img = pygame.transform.scale(hp_img, (30, 30))
+    hp_img = pygame.image.load("mario/hp_alt.png").convert()
+    hp_img = pygame.transform.scale(hp_img, (80, 65))
     hp_img.set_colorkey('black')
     while 1:  # Основной цикл программы
         timer.tick(60)
         for e in pygame.event.get():  # Обрабатываем события
             if e.type == pygame.MOUSEBUTTONDOWN:
-                hero.Shoot()
-                '''get_click(e.pos)'''
+                if e.button == 3:
+                    hero.Shoot()
+                else:
+                    get_click(e.pos)
             if e.type == pygame.USEREVENT:
                 counter += 1
+                if counter % 30 == 0:
+                    mob = Mob()
+                    entities.add(mob)
+                    mobs.add(mob)
                 mi = counter // 60
                 counter = counter % 60
                 text = ('Время выживания   ' + str(mi) + ':' + str(counter)).rjust(7)
@@ -412,15 +430,20 @@ def main():
             #          pygame.mixer.music.unpause()
         playerhits = pygame.sprite.spritecollide(hero, mobs, False)
         bullethits = pygame.sprite.groupcollide(bullets, mobs, True, True)
-        if playerhits:
+        if playerhits and counter - prhit >= 3:
             hp -= 1
+            prhit = counter
         for hit in bullethits:
             mob = Mob()
+            counter += 5
             entities.add(mob)
             mobs.add(mob)
         for t in bullets:
             t.update()
+        for m in mobs:
+            m.update
         screen.blit(font.render(text, True, (0, 0, 0)), (32, 48))
+        screen.blit(font.render(str(wood), True, (0, 0, 0)), (500, 200))
         draw_lives(screen, 30, 550, hp, hp_img)
         pygame.display.flip()
         screen.blit(bg2, (0, 0))  # Каждую итерацию необходимо всё перерисовывать
