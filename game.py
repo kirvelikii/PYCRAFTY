@@ -94,7 +94,8 @@ class Player(sprite.Sprite):
         bullet = Bullet(self.rect.right, self.rect.centery, speedx, speedy)
         entities.add(bullet)
         bullets.add(bullet)
-
+    def getpos(self):
+        return (self.rect.x, self.rect.y)
     def update(self, left, right, up, platforms):
 
         if up:
@@ -215,7 +216,7 @@ trees = []
 camera = ''
 total_level_width = len(level[0]) * PLATFORM_WIDTH  # Высчитываем фактическую ширину уровня
 total_level_height = len(level) * PLATFORM_HEIGHT  # высоту
-hero = Player(200 * 32, 50)  # создаем героя по (x,y) координатам
+hero = Player(0, 50)  # создаем героя по (x,y) координатам
 hp = 3
 camera = Camera(camera_configure, total_level_width, total_level_height)
 pygame.init()  # Инициация PyGame, обязательная строчка
@@ -400,23 +401,31 @@ class Mob(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self)
         self.image = pygame.Surface((20, 40))
         self.image.fill('BLUE')
+        self.image = image.load('fred.png')
         self.rect = self.image.get_rect()
-        self.rect.x = randrange(WIN_WIDTH / 2, WIN_WIDTH)
-        self.rect.y = randrange(10, WIN_HEIGHT)
-        self.speedy = 0
-        self.speedx = 0
+        self.rect.y = randrange(0, 100)
+        self.rect.x = randrange(200, 32 * 300)
 
     def update(self):
+        self.speedy = (hero.getpos()[1] - self.rect.y) / 200
+        self.speedx = (hero.getpos()[0] - self.rect.x) / 200
+        if self.speedx < 0:
+            self.image = image.load('ghostleft1.png')
+        else:
+            self.image = image.load('ghostright.png')
+        if self.speedy == 0:
+            self.speedy == randrange(-100, 100)
+        if self.speedx == 0:
+            self.speedx = randrange(-100, 100)
+        if abs(self.speedy) < 10 and self.speedy != 0:
+            self.speedy *= 10 / abs(self.speedy)
+        if abs(self.speedx) < 20 and self.speedx != 0:
+            self.speedx *= 20 / abs(self.speedx)
         self.rect.y += self.speedy
         self.rect.x += self.speedx
-        if self.rect.top > WIN_HEIGHT + 10 or self.rect.left < -10 or self.rect.right > WIN_WIDTH + 10:
-            self.rect.x = randrange(WIN_WIDTH - self.rect.width)
-            self.rect.y = randrange(-100, -40)
-            self.speedy = randrange(5, 8)
-            self.speedx = randrange(5, 8)
 
 
-for i in range(4):
+for i in range(1):
     mob = Mob()
     entities.add(mob)
     mobs.add(mob)
@@ -431,7 +440,7 @@ def draw_lives(surf, x, y, lives, img):
 
 
 def main():
-    global level, entities, platforms, trees, hp, numshot
+    global level, entities, platforms, trees, hp, numshot, mobs
     pygame.init()  # Инициация PyGame, обязательная строчка
     screen = pygame.display.set_mode(DISPLAY)  # Создаем окошко
     pygame.display.set_caption("PYCRAFT")  # Пишем в шапку
@@ -488,7 +497,7 @@ def main():
     flPause = False
     # pygame.mixer.music.load("audios/birds.ogg")
     # pygame.mixer.music.play(-1)
-    enemy1 = Enemy(-80)
+    enemy1 = Enemy(-120)
     clock = pygame.time.Clock()
 
     counter, text = 0, '0:0'.rjust(7)
@@ -541,6 +550,12 @@ def main():
                 #       pygame.mixer.music.pause()
             #      else:
             #          pygame.mixer.music.unpause()
+        for t in bullets:
+            t.update()
+        for m in mobs:
+            m.update()
+        for b in buttons:
+            b.process()
         playerhits = pygame.sprite.spritecollide(hero, mobs, False)
         bullethits = pygame.sprite.groupcollide(bullets, mobs, True, True)
         if playerhits and counter - prhit >= 3:
@@ -551,12 +566,7 @@ def main():
             counter += 5
             entities.add(mob)
             mobs.add(mob)
-        for t in bullets:
-            t.update()
-        for m in mobs:
-            m.update()
-        for b in buttons:
-            b.process()
+
         screen.blit(font.render(text, True, (0, 0, 0)), (32, 48))
         screen.blit(font.render('Древесина(д):' + str(int(wood)), True, (60, 10, 10)), (600, 400))
         screen.blit(font.render('Камень(к):' + str(stone), True, (20, 20, 20)), (600, 430))
