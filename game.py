@@ -1,15 +1,13 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
 from random import random, randrange
 import math
 from Gen import generate
-# Импортируем библиотеку pygame
 import pygame
 import pyganim
 from pygame import *
 '''from player import *'''
 from blocks import *
 import math
+import time
 # Объявляем переменные
 WIN_WIDTH = 800  # Ширина создаваемого окна
 WIN_HEIGHT = 640  # Высота
@@ -82,10 +80,10 @@ class Player(sprite.Sprite):
         self.boltAnimJump = pyganim.PygAnimation(ANIMATION_JUMP)
         self.boltAnimJump.play()
 
-    def Shoot(self):
+    def Shoot(self, n):
         fixspeed = 20
         posx = pygame.mouse.get_pos()[0] + camera.getpos(hero)[0] * (-1)
-        posy = pygame.mouse.get_pos()[1]  + camera.getpos(hero)[1] * (-1)
+        posy = pygame.mouse.get_pos()[1]  + camera.getpos(hero)[1] * (-1) + n * 10
 
         self.a = posx - self.rect.right
         self.b = self.rect.centery - posy
@@ -218,13 +216,13 @@ camera = ''
 total_level_width = len(level[0]) * PLATFORM_WIDTH  # Высчитываем фактическую ширину уровня
 total_level_height = len(level) * PLATFORM_HEIGHT  # высоту
 hero = Player(200 * 32, 50)  # создаем героя по (x,y) координатам
+hp = 3
 camera = Camera(camera_configure, total_level_width, total_level_height)
 pygame.init()  # Инициация PyGame, обязательная строчка
 screen = pygame.display.set_mode(DISPLAY)  # Создаем окошко
 wood = 0
 stone = 0
 rude = 0
-w = '0'.rjust(10)
 def get_click(pos):
     global level, entities, camera, platforms, wood, stone, rude
     x, y = pos
@@ -237,8 +235,10 @@ def get_click(pos):
             wood += 1
         elif trr == 'stone':
             stone += 1
-        else:
+        elif trr == 'rude':
             rude += 1
+        elif trr == 'list':
+            wood += 0.25
     '''entities.remove(Platform(x // 32 * 32, y // 32 * 32))
     print(platforms.pop(platforms.index(Platform(x // 32 * 32, y // 32 * 32))))'''
     g = open('level.txt', mode='w')
@@ -282,8 +282,119 @@ class Enemy:
                 self.cd_hide = 80
         elif self.cd_hide > 0:
             self.cd_hide -= 1
+buttons = []
+
+fontb = pygame.font.SysFont('Serif Sans', 20)
+numshot = 1
+class Button():
+    def __init__(self, x, y, width, height, buttonText='Button', onclickFunction=None, onePress=False):
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.onclickFunction = onclickFunction
+        self.onePress = onePress
+
+        self.fillColors = {
+            'normal': '#ffffff',
+            'hover': '#666666',
+            'pressed': '#333333',
+        }
+
+        self.buttonSurface = pygame.Surface((self.width, self.height))
+        self.buttonRect = pygame.Rect(self.x, self.y, self.width, self.height)
+
+        self.buttonSurf = fontb.render(buttonText, True, (20, 20, 20))
+
+        self.alreadyPressed = False
+
+        buttons.append(self)
+
+    def process(self):
+
+        mousePos = pygame.mouse.get_pos()
+
+        self.buttonSurface.fill(self.fillColors['normal'])
+        if self.buttonRect.collidepoint(mousePos):
+            self.buttonSurface.fill(self.fillColors['hover'])
+
+            if pygame.mouse.get_pressed(num_buttons=3)[0]:
+                self.buttonSurface.fill(self.fillColors['pressed'])
+
+                if self.onePress:
+                    self.onclickFunction()
+
+                elif not self.alreadyPressed:
+                    self.onclickFunction()
+                    self.alreadyPressed = True
+
+            else:
+                self.alreadyPressed = False
+
+        self.buttonSurface.blit(self.buttonSurf, [
+            self.buttonRect.width / 2 - self.buttonSurf.get_rect().width / 2,
+            self.buttonRect.height / 2 - self.buttonSurf.get_rect().height / 2
+        ])
+        screen.blit(self.buttonSurface, self.buttonRect)
 
 
+def upgradehp():
+    global wood, stone, rude, hp
+    if rude >= 15:
+        hp += 1
+        rude -= 15
+
+
+def upgradejump():
+    global wood, stone, rude, JUMP_POWER
+    if rude >= 5 and stone >= 15:
+        JUMP_POWER += 0.5
+        rude -= 5
+        stone-= 15
+
+def upgradespeed():
+    global wood, stone, rude, MOVE_SPEED
+    if wood >= 10 and stone >= 10:
+        MOVE_SPEED += 3
+        wood -= 10
+        stone-= 10
+
+
+def killen():
+    global wood, stone, rude, mobs
+    if wood >= 5 and stone >= 10 and rude >= 5:
+        for i in mobs:
+            i.kill()
+            break
+        wood -= 5
+        stone -= 10
+        rude -= 5
+
+
+def upgradeshoot():
+    global wood, stone, rude, numshot
+    if wood >= 10 and stone >= 10 and rude >= 10:
+        numshot += 1
+        wood -= 10
+        stone-= 10
+        rude -= 10
+
+
+def upgradetime():
+    global wood, stone, rude, mi
+    if wood >= 10 and stone >= 15 and rude >= 15:
+        mi += 1
+        wood -= 10
+        stone -= 15
+        rude -= 15
+
+
+customButton = Button(600, 50, 200, 40, '+Жизнь-15р', upgradehp)
+customButton1 = Button(600, 100, 200, 40, '+ВысотаПрыжка-15к,5р', upgradejump)
+customButton2 = Button(600, 150, 200, 40, '+СкоростьБега-10д,10к', upgradespeed)
+customButton3 = Button(600, 200, 200, 40, '-Враг-5р,10к,5д,', killen)
+customButton4 = Button(600, 250, 200, 40, '+Выстрел-10р,10к,10д', upgradeshoot)
+customButton4 = Button(600, 300, 200, 40, '+Минута-15р,15к,10д', upgradetime)
 class Mob(pygame.sprite.Sprite):
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
@@ -320,7 +431,7 @@ def draw_lives(surf, x, y, lives, img):
 
 
 def main():
-    global level, entities, platforms, trees
+    global level, entities, platforms, trees, hp, numshot
     pygame.init()  # Инициация PyGame, обязательная строчка
     screen = pygame.display.set_mode(DISPLAY)  # Создаем окошко
     pygame.display.set_caption("PYCRAFT")  # Пишем в шапку
@@ -383,16 +494,18 @@ def main():
     counter, text = 0, '0:0'.rjust(7)
     pygame.time.set_timer(pygame.USEREVENT, 1000)
     font = pygame.font.SysFont('Comic Sans', 20)
-    hp = 3
     hp_img = pygame.image.load("mario/hp_alt.png").convert()
     hp_img = pygame.transform.scale(hp_img, (80, 65))
     hp_img.set_colorkey('black')
     while 1:  # Основной цикл программы
-        timer.tick(60)
+        timer.tick(240)
         for e in pygame.event.get():  # Обрабатываем события
             if e.type == pygame.MOUSEBUTTONDOWN:
                 if e.button == 3:
-                    hero.Shoot()
+                    hh = 0
+                    for _ in range(numshot):
+                        hero.Shoot(hh)
+                        hh += 1
                 else:
                     get_click(e.pos)
             if e.type == pygame.USEREVENT:
@@ -441,9 +554,13 @@ def main():
         for t in bullets:
             t.update()
         for m in mobs:
-            m.update
+            m.update()
+        for b in buttons:
+            b.process()
         screen.blit(font.render(text, True, (0, 0, 0)), (32, 48))
-        screen.blit(font.render(str(wood), True, (0, 0, 0)), (500, 200))
+        screen.blit(font.render('Древесина(д):' + str(int(wood)), True, (60, 10, 10)), (600, 400))
+        screen.blit(font.render('Камень(к):' + str(stone), True, (20, 20, 20)), (600, 430))
+        screen.blit(font.render('Руда(р):' + str(rude), True, (130, 0, 130)), (600, 460))
         draw_lives(screen, 30, 550, hp, hp_img)
         pygame.display.flip()
         screen.blit(bg2, (0, 0))  # Каждую итерацию необходимо всё перерисовывать

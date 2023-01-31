@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 from pygame import *
 import os
@@ -53,6 +51,7 @@ class Listva(sprite.Sprite):
             self.image = Surface((0, 0))
             self.image = image.load("%s/blocks/platform.png" % ICON_DIR)
             self.rect = Rect(0, 0, 0, 0)
+            return 'list'
 
 class Earth(sprite.Sprite):
     def __init__(self, x, y):

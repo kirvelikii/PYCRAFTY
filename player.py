@@ -1,4 +1,4 @@
-''''#!/usr/bin/env python пока не надо
+''' пока не надо
 # -*- coding: utf-8 -*-
 import pygame
 from pygame import *
