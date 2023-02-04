@@ -3,7 +3,6 @@ import pygame, time
 PLAYING = 'playing'
 PAUSED = 'paused'
 STOPPED = 'stopped'
-
 NORTHWEST = 'northwest'
 NORTH = 'north'
 NORTHEAST = 'northeast'

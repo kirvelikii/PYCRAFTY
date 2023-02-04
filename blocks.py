@@ -6,7 +6,7 @@ PLATFORM_WIDTH = 32
 PLATFORM_HEIGHT = 32
 PLATFORM_COLOR = "#FF6262"
 ICON_DIR = os.path.dirname(__file__) #  Полный путь к каталогу с файлами
- 
+#определяем каждый класс блока
 class Platform(sprite.Sprite):
     def __init__(self, x, y):
         sprite.Sprite.__init__(self)
@@ -21,6 +21,7 @@ class Platform(sprite.Sprite):
             self.image = Surface((0, 0))
             self.image = image.load("%s/blocks/platform.png" % ICON_DIR)
             self.rect = Rect(0, 0, 0, 0)
+            return 'gr'
 class Tree(sprite.Sprite):
     def __init__(self, x, y):
         sprite.Sprite.__init__(self)
@@ -67,7 +68,7 @@ class Earth(sprite.Sprite):
             self.image = Surface((0, 0))
             self.image = image.load("%s/blocks/platform.png" % ICON_DIR)
             self.rect = Rect(0, 0, 0, 0)
-
+            return 'gr'
 
 class Stone(sprite.Sprite):
     def __init__(self, x, y):

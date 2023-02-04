@@ -1,5 +1,5 @@
 import random
-
+#функция генрации уровня, сохраняет его в level.txt
 def generate(x, y, n):
     g = open(n, mode='w')
     a = [[' ' for t in range(y)] for i in range(x)]

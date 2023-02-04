@@ -14,8 +14,8 @@ WIN_HEIGHT = 640  # Высота
 DISPLAY = (WIN_WIDTH, WIN_HEIGHT)  # Группируем ширину и высоту в одну переменную
 BACKGROUND_COLOR = "#90EEFD"
 
-enemy_img = [pygame.image.load('Bird0.png'), pygame.image.load('Bird1.png'), pygame.image.load('Bird2.png'),
-             pygame.image.load('Bird3.png')]
+enemy_img = [pygame.image.load('mobs/Bird0.png'), pygame.image.load('mobs/Bird1.png'), pygame.image.load('mobs/Bird2.png'),
+             pygame.image.load('mobs/Bird3.png')]
 
 MOVE_SPEED = 10
 WIDTH = 22
@@ -94,8 +94,12 @@ class Player(sprite.Sprite):
         bullet = Bullet(self.rect.right, self.rect.centery, speedx, speedy)
         entities.add(bullet)
         bullets.add(bullet)
+
+
     def getpos(self):
         return (self.rect.x, self.rect.y)
+
+
     def update(self, left, right, up, platforms):
 
         if up:
@@ -163,7 +167,7 @@ class Bullet(pygame.sprite.Sprite):
     def __init__(self, x, y, speedx, speedy):
         pygame.sprite.Sprite.__init__(self)
         self.image = pygame.Surface((10, 10))
-        self.image = image.load('bullet.png')
+        self.image = image.load('other/bullet.png')
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
@@ -216,7 +220,7 @@ trees = []
 camera = ''
 total_level_width = len(level[0]) * PLATFORM_WIDTH  # Высчитываем фактическую ширину уровня
 total_level_height = len(level) * PLATFORM_HEIGHT  # высоту
-hero = Player(0, 50)  # создаем героя по (x,y) координатам
+hero = Player(200 * 32, 50)  # создаем героя по (x,y) координатам
 hp = 3
 camera = Camera(camera_configure, total_level_width, total_level_height)
 pygame.init()  # Инициация PyGame, обязательная строчка
@@ -228,9 +232,12 @@ def get_click(pos):
     global level, entities, camera, platforms, wood, stone, rude
     x, y = pos
     dop = camera.getpos(hero)
-    level[y // 32][x // 32] = ' '
-    loot = [i.delete(-1 * dop[0] + x, - 1 * dop[1] + y) for i in platforms]
-    loot += [i.delete(-1 * dop[0] + x, - 1 * dop[1] + y) for i in trees]
+    loot = []
+    for o in platforms + trees:
+        r = o.delete(-1 * dop[0] + x, - 1 * dop[1] + y)
+        if r:
+            loot = [r]
+            break
     for trr in loot:
         if trr == 'wood':
             wood += 1
@@ -240,53 +247,15 @@ def get_click(pos):
             rude += 1
         elif trr == 'list':
             wood += 0.25
-    '''entities.remove(Platform(x // 32 * 32, y // 32 * 32))
-    print(platforms.pop(platforms.index(Platform(x // 32 * 32, y // 32 * 32))))'''
     g = open('level.txt', mode='w')
     for i in range(len(level)):
         print(''.join(level[i]), end='', file=g)
 
-
-class Enemy:
-    def __init__(self, away_y):
-        self.x = randrange(550, 730)
-        self.y = away_y
-        self.ay = away_y
-        self.speed = 3
-        self.dest_y = self.speed * randrange(20, 70)
-        self.img_cnt = 0
-        self.cd_hide = 0
-        self.come = True
-        self.go_away = False
-
-    def draw(self):
-        if self.img_cnt == 30:
-            self.img_cnt = 0
-
-        screen.blit(enemy_img[self.img_cnt // 3], (self.x, self.y))
-
-        if self.come and self.cd_hide == 0:
-            if self.y < self.dest_y:
-                self.y += self.speed
-            else:
-                self.come = False
-                self.go_away = True
-                self.dest_y = self.ay
-        elif self.go_away:
-            if self.y > self.dest_y:
-                self.y -= self.speed
-            else:
-                self.come = True
-                self.go_away = False
-                self.x = randrange(550, 730)
-                self.dest_y = self.speed * randrange(20, 70)
-                self.cd_hide = 80
-        elif self.cd_hide > 0:
-            self.cd_hide -= 1
 buttons = []
 
 fontb = pygame.font.SysFont('Serif Sans', 20)
 numshot = 1
+#класс кнопки
 class Button():
     def __init__(self, x, y, width, height, buttonText='Button', onclickFunction=None, onePress=False):
         self.x = x
@@ -389,7 +358,7 @@ def upgradetime():
         stone -= 15
         rude -= 15
 
-
+#прокачка
 customButton = Button(600, 50, 200, 40, '+Жизнь-15р', upgradehp)
 customButton1 = Button(600, 100, 200, 40, '+ВысотаПрыжка-15к,5р', upgradejump)
 customButton2 = Button(600, 150, 200, 40, '+СкоростьБега-10д,10к', upgradespeed)
@@ -401,22 +370,20 @@ class Mob(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self)
         self.image = pygame.Surface((20, 40))
         self.image.fill('BLUE')
-        self.image = image.load('fred.png')
+        self.image = image.load('mobs/fred.png')
         self.rect = self.image.get_rect()
         self.rect.y = randrange(0, 100)
         self.rect.x = randrange(200, 32 * 300)
 
     def update(self):
-        self.speedy = (hero.getpos()[1] - self.rect.y) / 200
-        self.speedx = (hero.getpos()[0] - self.rect.x) / 200
+        self.speedy = (hero.getpos()[1] - self.rect.y) / 400
+        self.speedx = (hero.getpos()[0] - self.rect.x) / 400
         if self.speedx < 0:
-            self.image = image.load('ghostleft1.png')
+            self.image = image.load('mobs/ghostleft1.png')
         else:
-            self.image = image.load('ghostright.png')
-        if self.speedy == 0:
-            self.speedy == randrange(-100, 100)
+            self.image = image.load('mobs/ghostright.png')
         if self.speedx == 0:
-            self.speedx = randrange(-100, 100)
+            self.speedx = randrange(-50, 50)
         if abs(self.speedy) < 10 and self.speedy != 0:
             self.speedy *= 10 / abs(self.speedy)
         if abs(self.speedx) < 20 and self.speedx != 0:
@@ -424,11 +391,6 @@ class Mob(pygame.sprite.Sprite):
         self.rect.y += self.speedy
         self.rect.x += self.speedx
 
-
-for i in range(1):
-    mob = Mob()
-    entities.add(mob)
-    mobs.add(mob)
 
 
 def draw_lives(surf, x, y, lives, img):
@@ -445,7 +407,7 @@ def main():
     screen = pygame.display.set_mode(DISPLAY)  # Создаем окошко
     pygame.display.set_caption("PYCRAFT")  # Пишем в шапку
     bg = Surface((WIN_WIDTH, WIN_HEIGHT))  # Создание видимой поверхности
-    bg2 = pygame.image.load('fon.jpg')  # будем использовать как фон
+    bg2 = pygame.image.load('other/fon.jpg')  # будем использовать как фон
     bg.fill(Color(BACKGROUND_COLOR))  # Заливаем поверхность сплошным цветом
 
     left = right = False  # по умолчанию - стоим
@@ -495,12 +457,11 @@ def main():
     camera = Camera(camera_configure, total_level_width, total_level_height)
 
     flPause = False
-    # pygame.mixer.music.load("audios/birds.ogg")
-    # pygame.mixer.music.play(-1)
-    enemy1 = Enemy(-120)
+    '''pygame.mixer.music.load("audios/birds.ogg")
+    pygame.mixer.music.play(-1)'''
     clock = pygame.time.Clock()
-
     counter, text = 0, '0:0'.rjust(7)
+    mi = 0
     pygame.time.set_timer(pygame.USEREVENT, 1000)
     font = pygame.font.SysFont('Comic Sans', 20)
     hp_img = pygame.image.load("mario/hp_alt.png").convert()
@@ -523,7 +484,7 @@ def main():
                     mob = Mob()
                     entities.add(mob)
                     mobs.add(mob)
-                mi = counter // 60
+                mi += counter // 60
                 counter = counter % 60
                 text = ('Время выживания   ' + str(mi) + ':' + str(counter)).rjust(7)
             if e.type == QUIT:
@@ -550,6 +511,10 @@ def main():
                 #       pygame.mixer.music.pause()
             #      else:
             #          pygame.mixer.music.unpause()
+        screen.blit(font.render('Древесина(д):' + str(int(wood)), True, (60, 10, 10)), (600, 400))
+        screen.blit(font.render('Камень(к):' + str(stone), True, (20, 20, 20)), (600, 430))
+        screen.blit(font.render('Руда(р):' + str(rude), True, (130, 0, 130)), (600, 460))
+        draw_lives(screen, 30, 550, hp, hp_img)
         for t in bullets:
             t.update()
         for m in mobs:
@@ -573,8 +538,7 @@ def main():
         screen.blit(font.render('Руда(р):' + str(rude), True, (130, 0, 130)), (600, 460))
         draw_lives(screen, 30, 550, hp, hp_img)
         pygame.display.flip()
-        screen.blit(bg2, (0, 0))  # Каждую итерацию необходимо всё перерисовывать
-        enemy1.draw()
+        screen.blit(bg2, (0, 0))  # необходимо всё перерисовывать и обновлять текст, блоки и тд
         if hp == 0:
             print('Game Over, your time -', mi, ':', counter)
             raise SystemExit
